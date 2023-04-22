@@ -1,0 +1,327 @@
+<style>
+#app {
+  width: 400px;
+  height: 100vh;
+  margin: auto;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-mask {
+  position: fixed;
+  z-index: 9998;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: table;
+  transition: opacity 0.3s ease;
+}
+
+.modal-wrapper {
+  display: table-cell;
+  vertical-align: middle;
+}
+
+.modal-container {
+  width: 300px;
+  margin: 0px auto;
+  padding: 20px 30px;
+  background-color: #fff;
+  border-radius: 2px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.33);
+  transition: all 0.3s ease;
+  font-family: Helvetica, Arial, sans-serif;
+}
+
+.modal-header h3 {
+  margin-top: 0;
+  color: #42b983;
+}
+
+.modal-body {
+  margin: 20px 0;
+}
+
+.modal-default-button {
+  float: right;
+}
+
+/*
+ * The following styles are auto-applied to elements with
+ * transition="modal" when their visibility is toggled
+ * by Vue.js.
+ *
+ * You can easily play with the modal transition by editing
+ * these styles.
+ */
+
+.modal-enter {
+  opacity: 0;
+}
+
+.modal-leave-active {
+  opacity: 0;
+}
+
+.modal-enter .modal-container,
+.modal-leave-active .modal-container {
+  -webkit-transform: scale(1.1);
+  transform: scale(1.1);
+}
+
+</style>
+
+<script type="text/x-template" id="modal-template">
+<div><slot name='synth'></slot></div>
+</script>
+
+    <script type="text/x-template" id="deleting_individual">
+      <transition name="modal">
+        <div class="modal-mask">
+          <div class="modal-wrapper">
+            <div class="modal-container">
+
+              <div class="modal-header">
+                <slot name="header">
+                  default header
+                </slot>
+              </div>
+
+              <div class="modal-footer">
+                <slot name="footer">
+                  <button class="modal-default-button" @click="$emit('close')">
+                    Нет
+                  </button>
+                  <button class="modal-default-button" @click="$emit('close');deleteInd();">
+                    Да
+                  </button>
+                </slot>
+              </div>
+            </div>
+          </div>
+        </div>
+      </transition>
+    </script>
+
+<div id='app'>
+  <button id="show-modal" @click="showModal = true; synth();" v-if="showModal==false">Включить синтезатор</button>
+  <modal v-if="showModal" @close="showModal = false">
+    <h1 slot='synth'>[[posts]]</h1>
+    <h1 slot='synth'>[[timePressed]]</h1>
+    <h1 slot='synth'>[[morse]]</h1>
+    <!--<button slot='synth' @click="player();">Play sequence</button>-->
+    <button slot='synth' @click="saveMorse();">Save morse</button>
+    <button slot='synth' @click="cleanMorse();">Clean morse</button>
+    <!--<h1 slot='synth'>[[saved_morse]]</h1>-->
+    <ul id="ul" slot='synth' v-for="(item, index) in items">
+  		[[index + 1]] [[ item.item ]]
+      <button @click="showSelected(item,key);">
+      Play pattern # [[index+1]]
+      </button>
+      <!--<button @click="deletingIndividual(index);">
+      x
+      </button>-->
+  	</ul>
+  </modal>
+  <deleting_individual v-if="deleting_individual" @close="deleting_individual = false">
+    <h3 slot="header">Delete pattern # [[index]]?</h3>
+  </deleting_individual>
+</div>
+
+<!--<script src='https://unpkg.com/vue@next'></script>-->
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.2.2/axios.min.js" integrity="sha512-QTnb9BQkG4fBYIt9JGvYmxPpd6TBeKp6lsUrtiVQsrJ9sb33Bn9s0wMQO9qVBFbPX3xHRAsBHvXlcsrnJjExjg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.5/jquery.min.js"></script>
+<script type='module'>
+
+    Vue.component("modal", {
+        template: "#modal-template",
+        methods: {
+          work_synth (){
+          }
+        }
+    });
+    
+    Vue.component("deleting_individual", {
+        template: "#deleting_individual",
+        inheritAttrs: false,
+          props: {
+            individual_number: null,
+            items: null,
+            index: null
+          }, 
+        /*methods: {
+          deleteInd() {
+            this.$parent.showupdatelable();
+            console.log(this.individual_number);
+            axios
+            .post('/deleteInd',{individual_number:this.individual_number})
+            .then(response => {this.$parent.updateparent();})
+          }
+        } */
+    });
+
+    const app = new Vue({
+    el: '#app',
+    delimiters : ['[[', ']]'],
+    data() {
+      return {
+        posts: 'hello',
+        showposts: false,
+        showModal: false,
+        x: '',
+        posts: 'Press space for playing sound',
+        time: '',
+        timePressed: '',
+        morse: '',
+        saved_morse: '',
+        items: [],
+        individual_morse: null,
+        deleting_individual: false
+      }
+    },
+    methods: {
+      showSelected (selectedItem,key) {
+        //var a = JSON.parse(JSON.stringify(selectedItem.post)); 
+        //this.individual_post = selectedItem.post;
+        this.individual_morse = selectedItem.item;
+        console.log(this.individual_morse);
+        this.player();
+      },
+      deletingIndividual(index){
+      	this.deleting_individual = true;
+        //console.log(index+1);
+        this.index = index+1;
+        console.log(this.index);
+      },
+      cleanMorse () {
+        this.morse = '';
+        this.timePressed='';
+      },
+      onKeydown( event ) {
+        if(event.key === ' '){
+          this.posts = "plays";
+          this.x += 1;
+          if (this.x==1) {
+            this.time = Date.now();
+          }
+        }
+      },
+      onKeyup( event ) {
+        if(event.key === ' '){
+          this.x = 0;
+          this.posts = "Press space for playing sound";
+          this.timePressed = Date.now() - this.time;
+          if (this.timePressed > 100) {  
+           this.morse = this.morse.concat('-');
+          } else {
+           this.morse = this.morse.concat('.');
+          }      
+        }
+      },      
+      synth (){
+		console.log('work');
+        //this.$children[0].work_synth()
+        var ctx = new AudioContext();
+        var osc = ctx.createOscillator();  
+        osc.type = 'sawtooth';
+        osc.frequency.value =300;    
+        osc.start();
+        document.addEventListener('keydown', function(event) {
+         if (event.keyCode == 32) {
+          osc.connect(ctx.destination);
+         }
+        });    
+        document.addEventListener('keydown', this.onKeydown);
+        document.addEventListener('keyup', this.onKeyup);
+        document.addEventListener('keyup', function(event) {
+         if (event.keyCode == 32) {
+          this.posts = "Press space for playing sound";
+          osc.disconnect(ctx.destination);
+         }
+        });
+      },
+      player (){
+        console.log('work');
+        //this.$children[0].work_synth()
+        var ctx = new AudioContext();
+        var osc = ctx.createOscillator();  
+        osc.type = 'sawtooth';
+        osc.frequency.value = 300;    
+        osc.start();
+        let morse = this.individual_morse;
+        var sequence;
+        
+  		function Computing (callback) {
+			function transformMorse () {
+					var morseArray = morse.split('');
+  				console.log('what '+morseArray);
+  				var addingPauses = 1;
+  				var morseArrayLength = morseArray.length;
+
+  				function addPauses (callback) {
+  					for(var i = 0; i < morseArrayLength; i++) {
+      					if (i == 0) {
+      						morseArray.splice(addingPauses, 0, '40');
+      					} else {
+      						morseArray.splice(addingPauses+=2, 0, '40');
+      					}
+    				}
+    				callback();
+  				}
+              
+    			addPauses (function () {
+  					for(var i = 0; i < morseArray.length; i++) {
+      					morseArray[i] = morseArray[i].replace("-", "1000");
+      					morseArray[i] = morseArray[i].replace(".", "80");
+    				}
+    				console.log('first '+ morseArray);
+                	sequence = morseArray;
+  				})
+			}
+  			transformMorse();
+  			callback();
+  		}
+       
+    	Computing (function (){
+        
+       		async function task(i) { // 3
+  				await timer(sequence[i]);
+  				if (sequence[i] > 50) {
+  					osc.disconnect(ctx.destination);
+           			console.log(`Pause number `);
+ 				}
+			}
+
+			async function play() {
+     			console.log(sequence);
+				var noteNumber = 0;
+				for(let i = 0; i < sequence.length; i++) {
+  					if (sequence[i] > 50) {
+    	   				console.log(`Note number ${noteNumber+=1}`);
+        				osc.connect(ctx.destination);
+        			}
+        			await task(i);
+  				}
+			}  
+			play();
+			function timer(ms) { return new Promise(res => setTimeout(res, ms)); }
+       	});        
+      },
+      saveMorse(){
+      	this.saved_morse = this.morse;
+      	var array1 = this.items;
+      	array1.push({item:this.morse});
+      	this.items = array1;
+      	console.log(this.morse);
+      	console.log(this.items);
+      }
+    }
+    });
+
+</script>

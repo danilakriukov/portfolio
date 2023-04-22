@@ -1,0 +1,30 @@
+<center>
+<button onmousedown="vLevo()" onmouseup="stop()">Влево</button>
+<button onmousedown="krasit()" onmouseup="stopkrasit()">Красить</button>
+<button onmousedown="vPravo()" onmouseup="stop()">Вправо</button>
+</center>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.2.2/axios.min.js" integrity="sha512-QTnb9BQkG4fBYIt9JGvYmxPpd6TBeKp6lsUrtiVQsrJ9sb33Bn9s0wMQO9qVBFbPX3xHRAsBHvXlcsrnJjExjg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script>
+	function vPravo () {
+		axios.post(`/right`);
+		console.log('vPravo');		
+	}
+
+	function vLevo () {
+		axios.post(`/left`);
+		console.log('vLevo');		
+	}
+
+	function stop () {
+		axios.post(`/stop`);
+		console.log('stop');		
+	}
+	function krasit() {
+		axios.post(`/krasit`);
+		console.log('krasit');		
+	}
+	function stopkrasit() {
+		axios.post(`/stopkrasit`);
+		console.log('stopkrasit');		
+	}
+</script>
